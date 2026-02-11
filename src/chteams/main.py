@@ -7,7 +7,7 @@ import logging
 import sys
 from .macos import MacOSController
 from .engine import ActivityEngine
-from .ui import show_banner
+from .ui import show_banner, show_summary
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,8 @@ def main():
     engine = ActivityEngine(controller=controller)
 
     try:
-        engine.run()
+        uptime, count = engine.run()
+        show_summary(uptime, count)
     except KeyboardInterrupt:
         logger.info("Exiting...")
         sys.exit(0)

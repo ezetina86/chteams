@@ -29,6 +29,7 @@ class ActivityEngine:
         self.is_running = False
         self.start_time = None
         self.last_action_time = "Never"
+        self.activity_count = 0
 
     def _get_uptime(self) -> str:
         """Calculates and formats the uptime.
@@ -41,11 +42,14 @@ class ActivityEngine:
         delta = datetime.now() - self.start_time
         return str(timedelta(seconds=int(delta.total_seconds())))
 
-    def run(self):
+    def run(self) -> tuple[str, int]:
         """Starts the infinite activity loop.
 
         Activates system-level sleep prevention and periodically executes
         interaction commands until stopped.
+
+        Returns:
+            tuple[str, int]: A tuple containing (total_uptime_string, activity_count).
         """
         self.is_running = True
         self.start_time = datetime.now()
@@ -68,6 +72,7 @@ class ActivityEngine:
                         )
                     )
                     self.controller.focus_teams_and_interact()
+                    self.activity_count += 1
                     self.last_action_time = datetime.now().strftime("%H:%M:%S")
 
                     # Sleep in small increments to allow for faster interruption
@@ -88,6 +93,8 @@ class ActivityEngine:
                 self.stop()
             finally:
                 self.controller.stop_caffeinate()
+        
+        return self._get_uptime(), self.activity_count
 
     def stop(self):
         """Stops the activity loop gracefully."""

@@ -52,3 +52,26 @@ def create_dashboard(status: str, uptime: str, last_act: str, interval: int) -> 
         border_style="purple",
         subtitle="[dim]Press Ctrl+C to Exit[/dim]"
     )
+
+def show_summary(uptime: str, total_actions: int):
+    """Displays a summary of the session activity.
+
+    Args:
+        uptime: Total time the script was running.
+        total_actions: Number of interactions performed.
+    """
+    console.print("\n")
+    table = Table.grid(expand=False, padding=(0, 2))
+    table.add_column(style="bold cyan")
+    table.add_column(style="white")
+    
+    table.add_row("Total Uptime:", uptime)
+    table.add_row("Total Interactions:", str(total_actions))
+    
+    console.print(Panel(
+        table,
+        title="[bold green]Session Summary[/bold green]",
+        border_style="green",
+        expand=False
+    ))
+    console.print("[bold italic blue]Bye! Stay active![/bold italic blue]\n")
