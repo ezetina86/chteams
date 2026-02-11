@@ -1,3 +1,8 @@
+"""Convenience wrapper script to run the chteams utility.
+
+This script ensures the 'src' directory is in the Python path and executes
+ the main entry point of the package.
+"""
 import sys
 import os
 

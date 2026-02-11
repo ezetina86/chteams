@@ -1,3 +1,8 @@
+"""Main entry point for the chteams utility.
+
+This module initializes logging and orchestrates the MacOSController and
+ActivityEngine to keep the system and Teams active.
+"""
 import logging
 import sys
 from .macos import MacOSController
@@ -7,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 def setup_logging():
+    """Configures the root logger for the application.
+
+    Sets up a stream handler that prints formatted logs to stdout.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
@@ -16,6 +25,11 @@ def setup_logging():
 
 
 def main():
+    """Initializes and runs the activity engine.
+
+    Sets up the controller and engine, then starts the main execution loop.
+    Handles keyboard interrupts for graceful shutdown.
+    """
     setup_logging()
 
     controller = MacOSController()

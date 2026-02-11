@@ -5,13 +5,22 @@ logger = logging.getLogger(__name__)
 
 
 class MacOSController:
-    """Handles macOS specific system commands."""
+    """Handles macOS specific system commands for preventing sleep and simulating activity.
+
+    This controller manages the 'caffeinate' process and executes AppleScripts to
+    interact with Microsoft Teams.
+    """
 
     def __init__(self):
+        """Initializes the MacOSController with no active caffeinate process."""
         self._caffeinate_proc = None
 
     def start_caffeinate(self) -> bool:
-        """Prevents system sleep/idle using caffeinate."""
+        """Prevents system sleep and idle by starting the caffeinate utility.
+
+        Returns:
+            bool: True if caffeinate was successfully started, False otherwise.
+        """
         try:
             self._caffeinate_proc = subprocess.Popen(["caffeinate", "-di"])
             logger.info("System 'caffeinate' activated.")
@@ -21,13 +30,17 @@ class MacOSController:
             return False
 
     def stop_caffeinate(self):
-        """Allows system to sleep/idle again."""
+        """Terminates the active caffeinate process, allowing the system to sleep."""
         if self._caffeinate_proc:
             self._caffeinate_proc.terminate()
             logger.info("System 'caffeinate' deactivated.")
 
     def focus_teams_and_interact(self):
-        """Uses AppleScript to focus Teams and simulate a keystroke."""
+        """Brings Microsoft Teams to focus and simulates a Command+1 keystroke.
+
+        Uses AppleScript to ensure Teams is the active application and triggers
+        the 'Activity' tab shortcut to signal user presence.
+        """
         script = """
         tell application "Microsoft Teams"
             activate
