@@ -29,7 +29,19 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
    .venv/bin/python keep_active.py
    ```
 
-## Usage Notes
+## Development
 
-- The first time you run this, macOS will ask for permission to control Microsoft Teams and System Events. Please grant these in **System Settings > Privacy & Security > Accessibility**.
-- The script switches to the Teams window every 4 minutes, simulates a keypress, and then returns control.
+The project has been refactored into a modular package structure in `src/chteams`.
+
+### Running Tests
+```bash
+uv pip install pytest
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+pytest
+```
+
+### New Features
+- **Logging**: Better visibility into what the script is doing.
+- **Unit Tested**: Core logic is verified with mocks.
+- **Modular**: Easier to extend or port to other OSes.
+
