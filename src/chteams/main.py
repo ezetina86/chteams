@@ -3,6 +3,8 @@ import sys
 from .macos import MacOSController
 from .engine import ActivityEngine
 
+logger = logging.getLogger(__name__)
+
 
 def setup_logging():
     logging.basicConfig(
@@ -22,7 +24,7 @@ def main():
     try:
         engine.run()
     except KeyboardInterrupt:
-        print("\nExiting...")
+        logger.info("Exiting...")
         sys.exit(0)
 
 
