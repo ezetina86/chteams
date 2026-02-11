@@ -7,6 +7,7 @@ import logging
 import sys
 from .macos import MacOSController
 from .engine import ActivityEngine
+from .ui import show_banner
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ def main():
     Handles keyboard interrupts for graceful shutdown.
     """
     setup_logging()
+    show_banner()
 
     controller = MacOSController()
     engine = ActivityEngine(controller=controller)

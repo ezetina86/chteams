@@ -14,7 +14,7 @@ def test_engine_stops_on_is_running_false():
 
     mock_controller.focus_teams_and_interact.side_effect = stop_engine
 
-    with patch("time.sleep", return_value=None):
+    with patch("time.sleep", return_value=None), patch("chteams.engine.Live"):
         engine.run()
 
     assert mock_controller.start_caffeinate.called

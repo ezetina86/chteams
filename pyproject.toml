@@ -5,6 +5,7 @@ description = "A robust macOS utility to prevent Microsoft Teams from automatica
 authors = [{ name = "Enrique Zetina" }]
 dependencies = [
     "pyautogui>=0.9.54",
+    "rich>=14.3.0",
 ]
 requires-python = ">=3.14"
 
