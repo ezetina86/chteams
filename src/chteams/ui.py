@@ -41,7 +41,13 @@ def create_dashboard(status: str, uptime: str, last_act: str, interval: int) -> 
     table.add_column(style="bold cyan", justify="right")
     table.add_column(style="white", justify="left")
 
-    table.add_row("Status: ", f"[bold green]{status}[/bold green]")
+    status_color = "green"
+    if status.upper() == "PAUSED":
+        status_color = "bold yellow"
+    elif status.upper() == "SIMULATING ACTIVITY":
+        status_color = "bold green"
+
+    table.add_row("Status: ", f"[{status_color}]{status}[/{status_color}]")
     table.add_row("Uptime: ", uptime)
     table.add_row("Last Action: ", last_act)
     table.add_row("Interval: ", f"{interval}s")
@@ -50,7 +56,7 @@ def create_dashboard(status: str, uptime: str, last_act: str, interval: int) -> 
         table,
         title="[bold white]Activity Dashboard[/bold white]",
         border_style="purple",
-        subtitle="[dim]Press Ctrl+C to Exit[/dim]"
+        subtitle="[dim]P: Pause/Resume | Ctrl+C: Exit[/dim]"
     )
 
 def show_summary(uptime: str, total_actions: int):

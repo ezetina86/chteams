@@ -2,6 +2,7 @@ import time
 import logging
 from datetime import datetime, timedelta
 from rich.live import Live
+from pynput import keyboard
 from .macos import MacOSController
 from .ui import create_dashboard
 
@@ -27,9 +28,20 @@ class ActivityEngine:
         self.controller = controller
         self.interval = interval
         self.is_running = False
+        self.paused = False
         self.start_time = None
         self.last_action_time = "Never"
         self.activity_count = 0
+        self._listener = None
+
+    def _on_press(self, key):
+        """Callback for keyboard events to toggle pause."""
+        try:
+            if hasattr(key, "char") and key.char == "p":
+                self.paused = not self.paused
+                logger.info(f"Engine {'paused' if self.paused else 'resumed'}")
+        except AttributeError:
+            pass
 
     def _get_uptime(self) -> str:
         """Calculates and formats the uptime.
@@ -55,6 +67,10 @@ class ActivityEngine:
         self.start_time = datetime.now()
         self.controller.start_caffeinate()
 
+        # Start keyboard listener
+        self._listener = keyboard.Listener(on_press=self._on_press)
+        self._listener.start()
+
         logger.info(f"Engine started. Interval: {self.interval}s")
 
         with Live(
@@ -63,26 +79,34 @@ class ActivityEngine:
         ) as live:
             try:
                 while self.is_running:
+                    if self.paused:
+                        current_status = "PAUSED"
+                    else:
+                        current_status = "Simulating Activity"
+                        self.controller.focus_teams_and_interact()
+                        self.activity_count += 1
+                        self.last_action_time = datetime.now().strftime("%H:%M:%S")
+
+                    # Update UI
                     live.update(
                         create_dashboard(
-                            "Simulating Activity",
+                            current_status,
                             self._get_uptime(),
                             self.last_action_time,
                             self.interval,
                         )
                     )
-                    self.controller.focus_teams_and_interact()
-                    self.activity_count += 1
-                    self.last_action_time = datetime.now().strftime("%H:%M:%S")
 
                     # Sleep in small increments to allow for faster interruption
                     # and UI updates
                     for _ in range(self.interval):
                         if not self.is_running:
                             break
+                        
+                        status_msg = "PAUSED" if self.paused else "Waiting"
                         live.update(
                             create_dashboard(
-                                "Waiting",
+                                status_msg,
                                 self._get_uptime(),
                                 self.last_action_time,
                                 self.interval,
@@ -93,9 +117,15 @@ class ActivityEngine:
                 self.stop()
             finally:
                 self.controller.stop_caffeinate()
-        
+                if self._listener:
+                    self._listener.stop()
+
         return self._get_uptime(), self.activity_count
 
+    def stop(self):
+        """Stops the activity loop gracefully."""
+        self.is_running = False
+        logger.info("Stopping engine...")
     def stop(self):
         """Stops the activity loop gracefully."""
         self.is_running = False
