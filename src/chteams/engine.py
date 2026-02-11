@@ -4,6 +4,7 @@ from .macos import MacOSController
 
 logger = logging.getLogger(__name__)
 
+
 class ActivityEngine:
     """Orchestrates the activity simulation loop."""
 
@@ -16,13 +17,13 @@ class ActivityEngine:
         """Starts the infinite loop to keep the session active."""
         self.is_running = True
         self.controller.start_caffeinate()
-        
+
         logger.info(f"Engine started. Interval: {self.interval}s")
         try:
             while self.is_running:
                 logger.info("Performing activity...")
                 self.controller.focus_teams_and_interact()
-                
+
                 # Sleep in small increments to allow for faster interruption
                 for _ in range(self.interval):
                     if not self.is_running:

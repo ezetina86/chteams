@@ -3,6 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class MacOSController:
     """Handles macOS specific system commands."""
 
@@ -12,7 +13,7 @@ class MacOSController:
     def start_caffeinate(self) -> bool:
         """Prevents system sleep/idle using caffeinate."""
         try:
-            self._caffeinate_proc = subprocess.Popen(['caffeinate', '-di'])
+            self._caffeinate_proc = subprocess.Popen(["caffeinate", "-di"])
             logger.info("System 'caffeinate' activated.")
             return True
         except FileNotFoundError:
@@ -27,7 +28,7 @@ class MacOSController:
 
     def focus_teams_and_interact(self):
         """Uses AppleScript to focus Teams and simulate a keystroke."""
-        script = '''
+        script = """
         tell application "Microsoft Teams"
             activate
         end tell
@@ -35,9 +36,9 @@ class MacOSController:
         tell application "System Events"
             keystroke "1" using {command down}
         end tell
-        '''
+        """
         try:
-            subprocess.run(['osascript', '-e', script], capture_output=True, check=True)
+            subprocess.run(["osascript", "-e", script], capture_output=True, check=True)
             logger.debug("Teams interaction successful.")
         except subprocess.CalledProcessError as e:
             logger.error(f"AppleScript failed: {e.stderr.decode().strip()}")
