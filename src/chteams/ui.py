@@ -25,7 +25,7 @@ def show_banner():
     """Displays the CHTEAMS ASCII banner."""
     console.print(BANNER)
 
-def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, interval: int) -> Panel:
+def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, interval: int, message: str = "") -> Panel:
     """Creates a dashboard panel with status information.
 
     Args:
@@ -34,6 +34,7 @@ def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, int
         last_act: Timestamp of the last interaction.
         next_act: Formatted time until next action.
         interval: Configured interval in seconds.
+        message: Optional message to display in the dashboard.
 
     Returns:
         Panel: A rich Panel object containing the dashboard.
@@ -45,6 +46,8 @@ def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, int
     status_color = "green"
     if status.upper() == "PAUSED":
         status_color = "bold yellow"
+    elif "ERROR" in status.upper():
+        status_color = "bold red"
     elif status.upper() == "SIMULATING ACTIVITY":
         status_color = "bold green"
 
@@ -53,12 +56,16 @@ def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, int
     table.add_row("Last Action: ", last_act)
     table.add_row("Next Action in: ", f"[bold yellow]{next_act}[/bold yellow]")
     table.add_row("Interval: ", f"{interval}s")
+    
+    if message:
+        table.add_row("", "") # Spacer
+        table.add_row("Note: ", f"[italic magenta]{message}[/italic magenta]")
 
     return Panel(
         table,
         title="[bold white]Activity Dashboard[/bold white]",
         border_style="purple",
-        subtitle="[dim]P: Pause/Resume | Ctrl+C: Exit[/dim]"
+        subtitle="[dim]Ctrl+P: Pause/Resume | Ctrl+C: Exit[/dim]"
     )
 
 def show_summary(uptime: str, total_actions: int):

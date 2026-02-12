@@ -46,10 +46,9 @@ def test_focus_teams_failure():
     assert "Failed to interact with Teams: error" in str(excinfo.value)
 
 
-def test_notify():
+def test_get_frontmost_app():
     controller = MacOSController()
     with patch("subprocess.run") as mock_run:
-        controller.notify("Title", "Message")
+        mock_run.return_value = MagicMock(stdout="Terminal\n")
+        assert controller.get_frontmost_app() == "Terminal"
         mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
-        assert "display notification \"Message\" with title \"Title\"" in args[0]

@@ -73,3 +73,16 @@ class MacOSController:
             subprocess.run(["osascript", "-e", script], check=True)
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to send notification: {e}")
+
+    def get_frontmost_app(self) -> str:
+        """Returns the name of the currently active (frontmost) application.
+
+        Returns:
+            str: The name of the frontmost application, or empty string if failed.
+        """
+        script = 'tell application "System Events" to get name of first process whose frontmost is true'
+        try:
+            result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return ""

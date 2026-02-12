@@ -33,15 +33,34 @@ class ActivityEngine:
         self.last_action_time = "Never"
         self.activity_count = 0
         self._listener = None
+        self._allowed_apps = ["Terminal", "iTerm2", "Code", "Warp", "Python", "kitty", "Alacritty", "Stable", "Visual Studio Code", "Cursor"]
+        self.last_message = ""
+        self.message_expiry = None
 
-    def _on_press(self, key):
-        """Callback for keyboard events to toggle pause."""
-        try:
-            if hasattr(key, "char") and key.char == "p":
-                self.paused = not self.paused
-                logger.info(f"Engine {'paused' if self.paused else 'resumed'}")
-        except AttributeError:
-            pass
+    def _set_message(self, msg: str, duration: int = 5):
+        """Sets a message to be displayed on the dashboard for a duration."""
+        self.last_message = msg
+        self.message_expiry = datetime.now() + timedelta(seconds=duration)
+
+    def _get_current_message(self) -> str:
+        """Returns the current message if not expired."""
+        if self.message_expiry and datetime.now() < self.message_expiry:
+            return self.last_message
+        return ""
+
+    def _on_pause_toggle(self):
+        """Callback for keyboard events to toggle pause, with focus check."""
+        active_app = self.controller.get_frontmost_app()
+        if any(app.lower() in active_app.lower() for app in self._allowed_apps):
+            self.paused = not self.paused
+            msg = f"Engine {'paused' if self.paused else 'resumed'}"
+            self._set_message(msg)
+            logger.info(f"{msg} (Active app: {active_app})")
+        else:
+            msg = f"Pause ignored: {active_app} is not a terminal."
+            self._set_message(msg)
+            logger.info(msg)
+            self.controller.notify("CHTEAMS Shortcut Ignored", msg)
 
     def _get_uptime(self) -> str:
         """Calculates and formats the uptime.
@@ -69,14 +88,16 @@ class ActivityEngine:
         consecutive_failures = 0
         max_failures = 3
 
-        # Start keyboard listener
-        self._listener = keyboard.Listener(on_press=self._on_press)
+        # Start keyboard listener for Ctrl+P
+        self._listener = keyboard.GlobalHotKeys({
+            '<ctrl>+p': self._on_pause_toggle
+        })
         self._listener.start()
 
         logger.info(f"Engine started. Interval: {self.interval}s")
 
         with Live(
-            create_dashboard("Starting...", "00:00:00", "Never", "N/A", self.interval),
+            create_dashboard("Starting...", "00:00:00", "Never", "N/A", self.interval, self._get_current_message()),
             refresh_per_second=1,
         ) as live:
             try:
@@ -110,6 +131,7 @@ class ActivityEngine:
                                 self.last_action_time,
                                 "Stopped",
                                 self.interval,
+                                self._get_current_message()
                             )
                         )
                         break
@@ -129,6 +151,7 @@ class ActivityEngine:
                                 self.last_action_time,
                                 next_act_str,
                                 self.interval,
+                                self._get_current_message()
                             )
                         )
                         time.sleep(1)

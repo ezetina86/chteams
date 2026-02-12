@@ -4,6 +4,7 @@ from chteams.engine import ActivityEngine
 
 def test_engine_stops_on_is_running_false():
     mock_controller = MagicMock()
+    mock_controller.get_frontmost_app.return_value = "Terminal"
     # Set interval to 1 so it runs quickly
     engine = ActivityEngine(controller=mock_controller, interval=1)
 
@@ -16,12 +17,27 @@ def test_engine_stops_on_is_running_false():
 
     with patch("time.sleep", return_value=None), \
          patch("chteams.engine.Live"), \
-         patch("chteams.engine.keyboard.Listener"):
+         patch("chteams.engine.keyboard.GlobalHotKeys"):
         engine.run()
 
     assert mock_controller.start_caffeinate.called
     assert mock_controller.focus_teams_and_interact.called
     assert mock_controller.stop_caffeinate.called
+
+
+def test_pause_toggle_with_focus():
+    mock_controller = MagicMock()
+    engine = ActivityEngine(controller=mock_controller)
+    
+    # Test with focus
+    mock_controller.get_frontmost_app.return_value = "Terminal"
+    engine._on_pause_toggle()
+    assert engine.paused is True
+    
+    # Test without focus
+    mock_controller.get_frontmost_app.return_value = "Notes"
+    engine._on_pause_toggle()
+    assert engine.paused is True  # Should NOT have changed back to False
 
 
 def test_engine_handles_interaction_failure():

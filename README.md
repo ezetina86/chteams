@@ -42,7 +42,7 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
 
 ## Controls
 
-- **P**: Toggle Pause/Resume. (System stays awake while paused, but Teams is not focused).
+- **Ctrl+P**: Toggle Pause/Resume. (Only works when Terminal/iTerm/Code is focused).
 - **Ctrl+C**: Stop the script and show the session summary.
 
 ## Development
