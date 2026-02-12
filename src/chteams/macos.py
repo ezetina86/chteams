@@ -40,6 +40,9 @@ class MacOSController:
 
         Uses AppleScript to ensure Teams is the active application and triggers
         the 'Activity' tab shortcut to signal user presence.
+
+        Raises:
+            RuntimeError: If the AppleScript execution fails.
         """
         script = """
         tell application "Microsoft Teams"
@@ -54,4 +57,19 @@ class MacOSController:
             subprocess.run(["osascript", "-e", script], capture_output=True, check=True)
             logger.debug("Teams interaction successful.")
         except subprocess.CalledProcessError as e:
-            logger.error(f"AppleScript failed: {e.stderr.decode().strip()}")
+            error_msg = e.stderr.decode().strip()
+            logger.error(f"AppleScript failed: {error_msg}")
+            raise RuntimeError(f"Failed to interact with Teams: {error_msg}")
+
+    def notify(self, title: str, message: str):
+        """Displays a macOS system notification.
+
+        Args:
+            title: The title of the notification.
+            message: The body content of the notification.
+        """
+        script = f'display notification "{message}" with title "{title}"'
+        try:
+            subprocess.run(["osascript", "-e", script], check=True)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to send notification: {e}")

@@ -66,6 +66,8 @@ class ActivityEngine:
         self.is_running = True
         self.start_time = datetime.now()
         self.controller.start_caffeinate()
+        consecutive_failures = 0
+        max_failures = 3
 
         # Start keyboard listener
         self._listener = keyboard.Listener(on_press=self._on_press)
@@ -74,7 +76,7 @@ class ActivityEngine:
         logger.info(f"Engine started. Interval: {self.interval}s")
 
         with Live(
-            create_dashboard("Starting...", "00:00:00", "Never", self.interval),
+            create_dashboard("Starting...", "00:00:00", "Never", "N/A", self.interval),
             refresh_per_second=1,
         ) as live:
             try:
@@ -83,32 +85,49 @@ class ActivityEngine:
                         current_status = "PAUSED"
                     else:
                         current_status = "Simulating Activity"
-                        self.controller.focus_teams_and_interact()
-                        self.activity_count += 1
-                        self.last_action_time = datetime.now().strftime("%H:%M:%S")
+                        try:
+                            self.controller.focus_teams_and_interact()
+                            self.activity_count += 1
+                            self.last_action_time = datetime.now().strftime("%H:%M:%S")
+                            consecutive_failures = 0
+                        except RuntimeError as e:
+                            consecutive_failures += 1
+                            logger.error(f"Activity simulation failed ({consecutive_failures}/{max_failures}): {e}")
+                            self.controller.notify("CHTEAMS Error", f"Failed to interact with Teams ({consecutive_failures}/{max_failures})")
+                            
+                            if consecutive_failures >= max_failures:
+                                logger.critical("Too many consecutive failures. Shutting down.")
+                                self.controller.notify("CHTEAMS Shutting Down", "Stopping engine due to persistent errors.")
+                                self.is_running = False
+                                current_status = "ERROR - SHUTTING DOWN"
 
-                    # Update UI
-                    live.update(
-                        create_dashboard(
-                            current_status,
-                            self._get_uptime(),
-                            self.last_action_time,
-                            self.interval,
+                    if not self.is_running:
+                        # Final update before exit
+                        live.update(
+                            create_dashboard(
+                                current_status,
+                                self._get_uptime(),
+                                self.last_action_time,
+                                "Stopped",
+                                self.interval,
+                            )
                         )
-                    )
+                        break
 
                     # Sleep in small increments to allow for faster interruption
                     # and UI updates
-                    for _ in range(self.interval):
+                    for remaining in range(self.interval, 0, -1):
                         if not self.is_running:
                             break
                         
                         status_msg = "PAUSED" if self.paused else "Waiting"
+                        next_act_str = f"{remaining}s" if not self.paused else "Paused"
                         live.update(
                             create_dashboard(
                                 status_msg,
                                 self._get_uptime(),
                                 self.last_action_time,
+                                next_act_str,
                                 self.interval,
                             )
                         )

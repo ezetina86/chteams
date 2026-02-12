@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 from chteams.macos import MacOSController
 import subprocess
+import pytest
 
 
 def test_start_caffeinate_success():
@@ -40,6 +41,15 @@ def test_focus_teams_failure():
     with patch(
         "subprocess.run",
         side_effect=subprocess.CalledProcessError(1, "cmd", stderr=b"error"),
-    ):
-        # Should log error but not crash
+    ), pytest.raises(RuntimeError) as excinfo:
         controller.focus_teams_and_interact()
+    assert "Failed to interact with Teams: error" in str(excinfo.value)
+
+
+def test_notify():
+    controller = MacOSController()
+    with patch("subprocess.run") as mock_run:
+        controller.notify("Title", "Message")
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        assert "display notification \"Message\" with title \"Title\"" in args[0]

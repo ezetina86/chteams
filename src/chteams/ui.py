@@ -25,13 +25,14 @@ def show_banner():
     """Displays the CHTEAMS ASCII banner."""
     console.print(BANNER)
 
-def create_dashboard(status: str, uptime: str, last_act: str, interval: int) -> Panel:
+def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, interval: int) -> Panel:
     """Creates a dashboard panel with status information.
 
     Args:
         status: Current engine status.
         uptime: Formatted uptime string.
         last_act: Timestamp of the last interaction.
+        next_act: Formatted time until next action.
         interval: Configured interval in seconds.
 
     Returns:
@@ -50,6 +51,7 @@ def create_dashboard(status: str, uptime: str, last_act: str, interval: int) -> 
     table.add_row("Status: ", f"[{status_color}]{status}[/{status_color}]")
     table.add_row("Uptime: ", uptime)
     table.add_row("Last Action: ", last_act)
+    table.add_row("Next Action in: ", f"[bold yellow]{next_act}[/bold yellow]")
     table.add_row("Interval: ", f"{interval}s")
 
     return Panel(

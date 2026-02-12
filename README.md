@@ -5,8 +5,11 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
 ## Features
 
 - **AppleScript Integration**: Periodically focuses Microsoft Teams and simulates safe activity (switching to the Activity tab).
+- **System Notifications**: Sends macOS notifications on interaction failures or if the script needs to shut down.
+- **Auto-Shutdown**: Automatically stops the engine after 3 consecutive failures to prevent infinite error loops.
 - **Caffeinate**: Uses the native macOS `caffeinate` tool to prevent system-wide idle and sleep modes.
 - **Beautiful Dashboard**: Real-time visual feedback using the `rich` library, including uptime and last action timestamp.
+- **Debug Mode**: Dedicated `--debug` flag for detailed execution logs and troubleshooting.
 - **Pause/Resume**: Toggle activity simulation on the fly by pressing the **'P'** key.
 - **Session Summary**: Get a detailed report of your total uptime and interactions when you finish.
 - **Python-powered**: Simple, transparent script running in a modular package structure.
@@ -16,7 +19,7 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
 - macOS
 - Microsoft Teams
 - Python 3.14+
-- `uv` (for package management)
+- `uv` (recommended for package management)
 
 ## Setup
 
@@ -24,12 +27,17 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
    ```bash
    uv venv
    source .venv/bin/activate
-   uv pip install pyautogui rich pynput
+   uv pip install -e .
    ```
 
 2. Run the script:
    ```bash
    .venv/bin/python keep_active.py
+   ```
+
+   To enable debug logging:
+   ```bash
+   .venv/bin/python keep_active.py --debug
    ```
 
 ## Controls

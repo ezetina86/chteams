@@ -12,7 +12,7 @@ def test_show_banner():
 
 def test_create_dashboard():
     """Verifies that create_dashboard returns a Rich Panel."""
-    panel = create_dashboard("Active", "00:01:00", "12:00:00", 240)
+    panel = create_dashboard("Active", "00:01:00", "12:00:00", "30s", 240)
     assert isinstance(panel, Panel)
     assert "Activity Dashboard" in str(panel.title)
     # Just verify it's a Table object without checking internal string representation
