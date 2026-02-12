@@ -36,14 +36,17 @@ class MacOSController:
             logger.info("System 'caffeinate' deactivated.")
 
     def focus_teams_and_interact(self):
-        """Brings Microsoft Teams to focus and simulates a Command+1 keystroke.
+        """Brings Microsoft Teams to focus, simulates a keystroke, and returns focus.
 
-        Uses AppleScript to ensure Teams is the active application and triggers
-        the 'Activity' tab shortcut to signal user presence.
+        Uses AppleScript to ensure Teams is the active application, triggers
+        the 'Activity' tab shortcut, and then activates the previously focused app.
 
         Raises:
             RuntimeError: If the AppleScript execution fails.
         """
+        previous_app = self.get_frontmost_app()
+        logger.debug(f"Previous app was '{previous_app}'. Activating Teams.")
+
         script = """
         tell application "Microsoft Teams"
             activate
@@ -59,7 +62,28 @@ class MacOSController:
         except subprocess.CalledProcessError as e:
             error_msg = e.stderr.decode().strip()
             logger.error(f"AppleScript failed: {error_msg}")
+            # Still try to restore focus even if interaction fails
+            if previous_app and previous_app != "Microsoft Teams":
+                self.activate_app(previous_app)
             raise RuntimeError(f"Failed to interact with Teams: {error_msg}")
+
+        # Restore focus to the previous app
+        if previous_app and previous_app != "Microsoft Teams":
+            logger.debug(f"Restoring focus to '{previous_app}'.")
+            self.activate_app(previous_app)
+
+    def activate_app(self, app_name: str):
+        """Activates a given application by name, with special handling for Warp."""
+        effective_app_name = app_name
+        if app_name.lower() == 'stable':
+            logger.debug("Remapping 'stable' to 'Warp' for activation.")
+            effective_app_name = 'Warp'
+
+        script = f'tell application "{effective_app_name}" to activate'
+        try:
+            subprocess.run(["osascript", "-e", script], capture_output=True, check=True)
+        except subprocess.CalledProcessError:
+            logger.warning(f"Could not restore focus to '{effective_app_name}'.")
 
     def notify(self, title: str, message: str):
         """Displays a macOS system notification.

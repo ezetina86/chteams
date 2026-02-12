@@ -41,7 +41,7 @@ def main():
     show_banner()
 
     controller = MacOSController()
-    engine = ActivityEngine(controller=controller)
+    engine = ActivityEngine(controller=controller, debug=args.debug)
 
     try:
         uptime, count = engine.run()

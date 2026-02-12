@@ -65,7 +65,7 @@ def create_dashboard(status: str, uptime: str, last_act: str, next_act: str, int
         table,
         title="[bold white]Activity Dashboard[/bold white]",
         border_style="purple",
-        subtitle="[dim]Ctrl+P: Pause/Resume | Ctrl+C: Exit[/dim]"
+        subtitle="[dim]p + Enter: Pause/Resume | Ctrl+C: Exit[/dim]"
     )
 
 def show_summary(uptime: str, total_actions: int):

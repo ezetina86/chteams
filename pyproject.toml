@@ -1,14 +1,12 @@
 [project]
 name = "chteams"
-version = "0.1.0"
+version = "0.2.0"
 description = "A robust macOS utility to prevent Microsoft Teams from automatically switching status to Away."
 authors = [{ name = "Enrique Zetina" }]
 dependencies = [
-    "pyautogui>=0.9.54",
-    "rich>=14.3.0",
-    "pynput>=1.8.1",
+    "rich>=13.0.0",
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.9"
 
 [project.scripts]
 keep-active = "chteams.main:main"
@@ -18,4 +16,3 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py314"

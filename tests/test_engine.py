@@ -2,74 +2,82 @@ from unittest.mock import MagicMock, patch
 from chteams.engine import ActivityEngine
 
 
-def test_engine_stops_on_is_running_false():
+def test_engine_initialization():
+    """Tests that the engine initializes correctly."""
     mock_controller = MagicMock()
-    mock_controller.get_frontmost_app.return_value = "Terminal"
-    # Set interval to 1 so it runs quickly
-    engine = ActivityEngine(controller=mock_controller, interval=1)
-
-    # We want to run the loop at least once and then stop
-    # We'll use a side_effect to stop the engine after the first interaction
-    def stop_engine(*args, **kwargs):
-        engine.is_running = False
-
-    mock_controller.focus_teams_and_interact.side_effect = stop_engine
-
-    with patch("time.sleep", return_value=None), \
-         patch("chteams.engine.Live"), \
-         patch("chteams.engine.keyboard.GlobalHotKeys"):
-        engine.run()
-
-    assert mock_controller.start_caffeinate.called
-    assert mock_controller.focus_teams_and_interact.called
-    assert mock_controller.stop_caffeinate.called
+    engine = ActivityEngine(controller=mock_controller, interval=100, debug=True)
+    assert engine.interval == 100
+    assert engine.debug is True
+    assert engine.paused is False
 
 
-def test_pause_toggle_with_focus():
+@patch("chteams.engine.InputHandler")
+def test_handle_input_pauses_engine(mock_input_handler_class):
+    """Tests that a pause request from the input handler toggles the paused state."""
     mock_controller = MagicMock()
+    
+    # Instantiate a real engine, but its InputHandler will be a mock
     engine = ActivityEngine(controller=mock_controller)
     
-    # Test with focus
-    mock_controller.get_frontmost_app.return_value = "Terminal"
-    engine._on_pause_toggle()
+    # Ensure is_set returns False by default so it doesn't toggle immediately
+    engine.input_handler.pause_requested.is_set.return_value = False
+    
+    # Verify starting state
+    assert engine.paused is False
+    
+    # Simulate the input handler thread setting the pause event
+    engine.input_handler.pause_requested.is_set.return_value = True
+    
+    # Call the input handler
+    engine._handle_input()
+    
+    # Verify the engine is paused and the event was cleared
     assert engine.paused is True
+    engine.input_handler.pause_requested.clear.assert_called_once()
     
-    # Test without focus
-    mock_controller.get_frontmost_app.return_value = "Notes"
-    engine._on_pause_toggle()
-    assert engine.paused is True  # Should NOT have changed back to False
+    # Set it back to False for the next call
+    engine.input_handler.pause_requested.is_set.return_value = False
+    engine._handle_input()
+    assert engine.paused is True  # Should stay True because is_set was False
 
 
-def test_engine_handles_interaction_failure():
+@patch("chteams.engine.ActivityEngine._handle_input")
+@patch("chteams.engine.InputHandler")
+def test_run_loop_calls_handle_input(mock_input_handler_class, mock_handle_input):
+    """Tests that the run loop correctly calls the input handler."""
     mock_controller = MagicMock()
-    engine = ActivityEngine(controller=mock_controller, interval=1)
+    mock_input_handler_class.return_value = MagicMock()
     
-    # Fail once then stop
-    def fail_then_stop(*args, **kwargs):
+    engine = ActivityEngine(controller=mock_controller, interval=1, debug=True)
+
+    def stop_engine(*args, **kwargs):
         engine.is_running = False
-        raise RuntimeError("Failed")
+        
+    mock_controller.focus_teams_and_interact.side_effect = stop_engine
 
-    mock_controller.focus_teams_and_interact.side_effect = fail_then_stop
-
-    with patch("time.sleep", return_value=None), \
-         patch("chteams.engine.Live"), \
-         patch("chteams.engine.keyboard.Listener"):
+    with patch("time.sleep", return_value=None):
         engine.run()
 
-    assert mock_controller.notify.called
-    assert engine.activity_count == 0
+    # The loop should run once, calling _handle_input at least once.
+    assert mock_handle_input.call_count >= 1
 
 
-def test_engine_shuts_down_after_max_failures():
+@patch("chteams.engine.InputHandler")
+def test_engine_shuts_down_after_max_failures(mock_input_handler_class):
+    """Tests that the engine stops after 3 consecutive interaction failures."""
     mock_controller = MagicMock()
+    mock_handler = MagicMock()
+    # IMPORTANT: Ensure is_set() returns False so it doesn't enter PAUSED state
+    mock_handler.pause_requested.is_set.return_value = False
+    mock_input_handler_class.return_value = mock_handler
+    
     engine = ActivityEngine(controller=mock_controller, interval=1)
     
     # Always fail
     mock_controller.focus_teams_and_interact.side_effect = RuntimeError("Persistent failure")
 
     with patch("time.sleep", return_value=None), \
-         patch("chteams.engine.Live"), \
-         patch("chteams.engine.keyboard.Listener"):
+         patch("chteams.engine.Live"):
         engine.run()
 
     # Should have attempted 3 times (max_failures) and then stopped

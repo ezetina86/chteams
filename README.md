@@ -10,7 +10,7 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
 - **Caffeinate**: Uses the native macOS `caffeinate` tool to prevent system-wide idle and sleep modes.
 - **Beautiful Dashboard**: Real-time visual feedback using the `rich` library, including uptime and last action timestamp.
 - **Debug Mode**: Dedicated `--debug` flag for detailed execution logs and troubleshooting.
-- **Pause/Resume**: Toggle activity simulation on the fly by pressing the **'P'** key.
+- **Pause/Resume**: Toggle activity simulation on the fly by pressing the **'p + Enter'** keys.
 - **Session Summary**: Get a detailed report of your total uptime and interactions when you finish.
 - **Python-powered**: Simple, transparent script running in a modular package structure.
 
@@ -39,10 +39,11 @@ A robust macOS utility to prevent Microsoft Teams from automatically switching y
    ```bash
    .venv/bin/python keep_active.py --debug
    ```
+   *Note: In debug mode, the interactive dashboard is replaced with a simple log stream for clarity.*
 
 ## Controls
 
-- **Ctrl+P**: Toggle Pause/Resume. (Only works when Terminal/iTerm/Code is focused).
+- **p + Enter**: Toggle Pause/Resume (when the terminal window is active).
 - **Ctrl+C**: Stop the script and show the session summary.
 
 ## Development
